@@ -134,6 +134,7 @@ def read_in_file():
 
 
 
+
 ################################################################################
 # Functions to search the character grid for a particular word.
 
@@ -183,7 +184,7 @@ def search_list_for_word(list, word):
         # Check for backwards match
         if(list[i] == last_letter):
             if(backward_match(list[i:i+word_length], word)):
-                return i+word_length;
+                return i+(word_length-1);
 
     # If the code reaches here, then no match was found. Return -1 (indicating
     # that no match was found)
@@ -203,6 +204,8 @@ def search_rows_for_word(character_grid, word):
     for i in range(m):
         ith_row = character_grid[i][:]
         j = search_list_for_word(ith_row, word);
+
+        # if found, return the index of the first letter of word.
         if(j != -1):
             return i,j;
 
@@ -223,6 +226,8 @@ def search_cols_for_word(character_grid, word):
     # cycle through the columns of character_grid. Check for word in each one
     for j in range(n):
         jth_column = [row[j] for row in character_grid];
+
+        # if found, return the index of the first letter of word.
         i = search_list_for_word(jth_column, word);
         if(i != -1):
             return i,j
@@ -234,7 +239,7 @@ def search_cols_for_word(character_grid, word):
 
 
 def search_descending_diags_for_word(character_grid, word):
-    """ This function searches for word in the descending diagionals of
+    """This function searches for word in the descending diagionals of
     character_grid. If a word is found, then the position of the first letter
     of the word is returned. If no match is found, -1,-1 is returned. """
 
@@ -285,6 +290,7 @@ def search_descending_diags_for_word(character_grid, word):
             j += 1;
 
         # We now have the descending kth diagional. Let's search it for a match
+        # if found, return the index of the first letter of word.
         p = search_list_for_word(kth_diagional, word);
         if(p != -1):
             # the index of the pth term in the kth descending diagional is simply
@@ -349,6 +355,7 @@ def search_ascending_diags_for_word(character_grid, word):
             j += 1;
 
         # We now have the kth ascending diagional. Let's search it for a match
+        # if found, return the index of the first letter of word.
         p = search_list_for_word(kth_diagional, word);
         if(p != -1):
             # the index of the pth term in the kth ascending diagional is simply
@@ -361,10 +368,43 @@ def search_ascending_diags_for_word(character_grid, word):
 
 
 
+
+
+################################################################################
+# Write to file
+
+def write_locations_to_file(locations_dict):
+    # First, open the file
+    File = open("found.txt","w");
+
+    # Next, we need to figure out the number of letters in the longest word.
+    # We need this to be able to justify the code
+    max_length = 0;
+    for word in locations_dict:
+        if(len(word) > max_length):
+            max_length = len(word);
+
+
+    # Now, cycle through the keys in the dictionary, print the corresponding
+    # values to the File. It should be noted that, at this point, the i,j
+    # index in the coordinate_grid. This means that they are 0 indexed. Thus,
+    # when priting to file, we need to add 1 to each of these values
+    for word in locations_dict:
+        i = locations_dict[word][0]+1;
+        j = locations_dict[word][1]+1;
+        print("%s %3d %3d" % (word.ljust(max_length), i, j), file = File);
+
+    File.close();
+
+
+
+
+
 ################################################################################
 # Main! (the main function)
 
 def main():
+    ############################################################################
     # First, read in the character grid and words from hidden.txt
     character_grid,words = read_in_file();
 
@@ -373,28 +413,48 @@ def main():
     n = len(character_grid[0]);
     k = len(words);
 
+    ############################################################################
+    # Next, find the location of each word in the the character array.
 
-    # Cycle through the word
+    # Declare an empty dictionary to store the location of the first letter in
+    # each word.
+    locations_dict = {};
+
+    # Cycle through the word. When a match is found, store the i,j coordinate
+    # in the locations_dict dictionary
     for word in words:
         # Search the rows of character_grid for word
         i,j = search_rows_for_word(character_grid,word);
         if(i != -1):
-            print("%s is in a row. Its first letter is at (%d, %d)"%(word, i+1,j+1));
+            locations_dict[word] = (i,j);
+            continue;
 
         # Search the columns of character_grid for word
         i,j = search_cols_for_word(character_grid, word);
         if(i != -1):
-            print("%s is in a column. Its first letter is at (%d, %d)"%(word, i+1,j+1));
+            locations_dict[word] = (i,j);
+            continue;
 
         # Search the descending diagonals of character_grid for word.
         i,j = search_descending_diags_for_word(character_grid, word);
         if(i != -1):
-            print("%s is in a descending diagonal. Its first letter is at (%d, %d)"%(word, i+1,j+1));
+            locations_dict[word] = (i,j);
+            continue;
 
         # Finally, search the ascending diagionals of the character_grid for word.
         i,j = search_ascending_diags_for_word(character_grid, word);
         if(i != -1):
-            print("%s is in an ascending diagonal. Its first letter is at (%d, %d)"%(word, i+1,j+1));
+            locations_dict[word] = (i,j);
+            continue;
+
+        # if the code makes it to here, then we couldn't find the word.
+        # write (-1,-1) for the location.
+        locations_dict[word] = (-1,-1);
+
+
+    ############################################################################
+    # Finally, with the words found, write the results to found.txt
+    write_locations_to_file(locations_dict);
 
 
 if(__name__ == "__main__"):
