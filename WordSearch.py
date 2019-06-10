@@ -1,15 +1,14 @@
 #  File: WordSearch.py
 
 #  Description: This program finds the locations of words in an rectangular
-#  grid of letters.
+#  grid of letters. The words and character grid (for the word search) are
+#  read in from hidden.txt (which is assumed to be in the format specified in
+#  the problem statement), finds the words, and then prints location of each
+#  word (in the character array) in found.txt.
 
 #  Student Name: Robert Stephany
 
 #  Student UT EID: rrs2558
-
-#  Partner Name:
-
-#  Partner UT EID:
 
 #  Course Name: CS 313E
 
@@ -17,7 +16,7 @@
 
 #  Date Created: 06/09/2019
 
-#  Date Last Modified: 06/09/2019
+#  Date Last Modified: 06/10/2019
 
 ################################################################################
 # Functions to read in from file.
@@ -374,6 +373,8 @@ def search_ascending_diags_for_word(character_grid, word):
 # Write to file
 
 def write_locations_to_file(locations_dict):
+    """ This function, as the name suggests, is used to write the location of
+    each word to a file, found.txt. """"
     # First, open the file
     File = open("found.txt","w");
 
