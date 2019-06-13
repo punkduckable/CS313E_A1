@@ -18,6 +18,8 @@
 
 #  Date Last Modified: 06/10/2019
 
+from math import log, floor
+
 ################################################################################
 # Functions to read in from file.
 
@@ -44,7 +46,7 @@ def remove_newline_characters(List):
     """As the name suggests, this function removes newline characters from
     list. To improve readibility, the procesed list is returned"""
 
-    # Cycle through the list.
+    # Cycle through the list, remove all instances of \n.
     list_length = len(List);
     for i in range(list_length):
         if ("\n" in List[i]):
@@ -57,14 +59,13 @@ def remove_newline_characters(List):
 def read_in_file():
     """ This function reads in hidden.txt and processes it. The grid of letters
     is read into a 2d array while the desired words is read into a 1d list.
-    Both of these lists are then returned. """
+    Both of these are then returned. """
 
     File = open("hidden.txt","r");
 
     ############################################################################
     # First, read in m,n
 
-    # First, determine the dimensions of the array.
     space_split_first_line = (File.readline()).split(" ");
 
     # Depending on how many spaces were used between n and m,
@@ -72,7 +73,8 @@ def read_in_file():
     # rid of those
     space_split_first_line = remove_empty_elements(space_split_first_line);
 
-    # Now we can assign m and n
+    # At this point, space_split_first_line should contain just two elements
+    # corresponding to n and m. Thus, we can now assign m and n
     m = int(space_split_first_line[0])
     n = int(space_split_first_line[1])
 
@@ -94,16 +96,16 @@ def read_in_file():
         # rid of that.
         space_split_line = remove_newline_characters(space_split_line);
 
-        # Next if there are multiple spaces between two characters then
-        # the split method creates empty strings. Let's get rid of those first.
+        # Further, if there are multiple spaces between two characters then
+        # the split method creates empty strings. Let's get rid of those.
         space_split_line = remove_empty_elements(space_split_line);
 
-        # Now the space split line has been processed. We're now ready to
-        # add it to the character grid.
+        # Now the space split line has been processed. We can now add it to the
+        # character grid.
         character_grid.append(space_split_line);
 
     ############################################################################
-    # Next, determine the number of words that we need to find.
+    # Next, read in k.
 
     File.readline();                   # Throw away blank line
     k = int(File.readline());
@@ -115,10 +117,9 @@ def read_in_file():
 
     # Loop through the words
     for i in range(k):
-        # First, read in the line.
         Word = File.readline();
 
-        # Next, remove any whitespace (tabs, newline characters, and spaces).
+        # Remove any whitespace (tabs, newline characters, and spaces).
         Word = Word.replace(" ","");
         Word = Word.replace("\t","");
         Word = Word.replace("\n","");
@@ -126,7 +127,7 @@ def read_in_file():
         # Now that the word is processed, add it to the Words array
         Words.append(Word);
 
-    # File has now been read, we can close the file and return our findings.
+    # File has now been read, close it and return our findings.
     File.close();
     return character_grid, Words;
 
@@ -151,7 +152,8 @@ def forward_match(list, word):
 
 
 def backward_match(list, word):
-    # Check for a forward match using the word but reversed.
+    # To check if the word has a backwards match, we can just see if the list
+    # forward-matches the reverse of word.
     # Note: word[::-1] reverses the word.
     return forward_match(list, word[::-1]);
 
@@ -250,11 +252,9 @@ def search_descending_diags_for_word(character_grid, word):
     # in each one. There are n+m-1 descending diagonals (think about it)
     # NOTE: k is 1 indexed (see long comment below, it makes sense to do this)
     for k in range(1,n+m+1):
-        # first, we need to get the kth descending diagonal of character_grid.
-        # I begin with an empty list.
-        kth_diagional = [];
-
-        """ isuppose that k < m (the number of rows). Notice that the 2nd
+        """ First, we need to get the kth descending diagonal of character_grid
+        but how exactly do we do that?
+        Well, suppose that k < m (the number of rows). Notice that the 2nd
         descending diagional looks like
                              | - - - - - |
                              | - - - - - |
@@ -275,6 +275,9 @@ def search_descending_diags_for_word(character_grid, word):
         starts at index (k-m, 0).
 
         Using these insigits, we can get the kth descending diagional. """
+
+        kth_diagional = [];
+
         # indicies of the 1st component of the kth diagonal.
         i_start = m-k if (k < m) else 0;
         j_start = 0 if (k < m) else k-m;
@@ -315,11 +318,9 @@ def search_ascending_diags_for_word(character_grid, word):
     # in each one. There are n+m-1 ascending diagonals (think about it)
     # NOTE: k is 1-indexed (see below, it makes sense... sorta)
     for k in range(1,n+m+1):
-        # first, we need to get the kth ascending diagonal of character_grid.
-        # I begin with an empty list.
-        kth_diagional = [];
-
-        """ suppose that k < m (the number of rows). Notice that the 2nd
+        """ First, we need to get the kth ascending diagonal of character_grid.
+        But how exactly do we do that?
+        suppose that k < m (the number of rows). Notice that the 2nd
         ascending diagional looks like
                              | - # - - - |
                              | # - - - - |
@@ -340,6 +341,9 @@ def search_ascending_diags_for_word(character_grid, word):
         starts at index (m, k-m).
 
         Using these insigits, we can get the kth ascending diagional. """
+
+        kth_diagional = [];
+
         # indicies of the 1st component of the kth diagonal.
         i_start = k-1 if (k < m) else m-1;
         j_start = 0 if (k < m) else k-m;
@@ -358,7 +362,7 @@ def search_ascending_diags_for_word(character_grid, word):
         p = search_list_for_word(kth_diagional, word);
         if(p != -1):
             # the index of the pth term in the kth ascending diagional is simply
-            # (i_start - p, j_start +p).
+            # (i_start - p, j_start +p) (think about it).
             return i_start-p, j_start+p;
 
     # if we've reached here then the word could not be found in the ascending
@@ -374,26 +378,46 @@ def search_ascending_diags_for_word(character_grid, word):
 
 def write_locations_to_file(locations_dict):
     """ This function, as the name suggests, is used to write the location of
-    each word to a file, found.txt. """"
-    # First, open the file
+    each word to a file, found.txt. """
+
     File = open("found.txt","w");
 
+    ############################################################################
     # Next, we need to figure out the number of letters in the longest word.
-    # We need this to be able to justify the code
-    max_length = 0;
+    # We need this to justify the printout
+    word_width = 0;
     for word in locations_dict:
-        if(len(word) > max_length):
-            max_length = len(word);
+        if(len(word) > word_width):
+            word_width = len(word);
+
+    ############################################################################
+    # We also need to know the number of digits needed to print the biggest
+    # index value. First, we need to know what the maximum value that we will be
+    # printing as (Note: we print use 1-indexing when printing the coordinates
+    # but the values in coordinate_dict are 0-indexed)
+    max_coordinate = 0;
+    for i,j in locations_dict.values():
+        if ((i+1) > max_coordinate):
+            max_coordinate = i+1;
+
+        if ((j+1) > max_coordinate):
+            max_coordinate = j+1;
+
+    # Next, we need to determine the number of characters needed digits needed
+    # to represent max_coordinate. This is simply one more than the floor of the
+    # log (base 10) of max_coordinate (think about it)
+    coordinate_width = floor(log(max_coordinate,10)) + 1;
 
 
+    ############################################################################
     # Now, cycle through the keys in the dictionary, print the corresponding
     # values to the File. It should be noted that, at this point, the i,j
     # index in the coordinate_grid. This means that they are 0 indexed. Thus,
     # when priting to file, we need to add 1 to each of these values
     for word in locations_dict:
-        i = locations_dict[word][0]+1;
-        j = locations_dict[word][1]+1;
-        print("%s %3d %3d" % (word.ljust(max_length), i, j), file = File);
+        i_str = str(locations_dict[word][0] + 1);     # the +1 converts from 0 index to 1 index
+        j_str = str(locations_dict[word][1] + 1);
+        print("%s %s %s" % (word.ljust(word_width), i_str.rjust(coordinate_width), j_str.rjust(coordinate_width)), file = File);
 
     File.close();
 
@@ -407,25 +431,23 @@ def write_locations_to_file(locations_dict):
 def main():
     ############################################################################
     # First, read in the character grid and words from hidden.txt
-    character_grid,words = read_in_file();
+    character_grid, words = read_in_file();
 
-    # now, determine m,n,k
+    # determine m,n,k
     m = len(character_grid);
     n = len(character_grid[0]);
     k = len(words);
 
     ############################################################################
-    # Next, find the location of each word in the the character array.
+    # Next, find the location of each word in character_gird.
 
-    # Declare an empty dictionary to store the location of the first letter in
-    # each word.
     locations_dict = {};
 
     # Cycle through the word. When a match is found, store the i,j coordinate
     # in the locations_dict dictionary
     for word in words:
         # Search the rows of character_grid for word
-        i,j = search_rows_for_word(character_grid,word);
+        i,j = search_rows_for_word(character_grid, word);
         if(i != -1):
             locations_dict[word] = (i,j);
             continue;
@@ -456,6 +478,7 @@ def main():
     ############################################################################
     # Finally, with the words found, write the results to found.txt
     write_locations_to_file(locations_dict);
+
 
 
 if(__name__ == "__main__"):
