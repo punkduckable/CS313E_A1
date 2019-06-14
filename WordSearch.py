@@ -16,15 +16,15 @@
 
 #  Date Created: 06/09/2019
 
-#  Date Last Modified: 06/10/2019
+#  Date Last Modified: 06/13/2019
 
 from math import log, floor
 
 ################################################################################
-# Functions to read in from file.
+# Functions for reading in from hidden.txt
 
-def remove_empty_elements(List):
-    """This function removes empty elements from List. Even though lists are
+def remove_empty_string(List):
+    """This function removes empty strings from List. Even though lists are
     mutable, the processed list is returned to improve readability."""
 
     # Cycle through the list.
@@ -44,7 +44,7 @@ def remove_empty_elements(List):
 
 def remove_newline_characters(List):
     """As the name suggests, this function removes newline characters from
-    list. To improve readibility, the procesed list is returned"""
+    List. To improve readibility, the procesed list is returned"""
 
     # Cycle through the list, remove all instances of \n.
     list_length = len(List);
@@ -66,17 +66,17 @@ def read_in_file():
     ############################################################################
     # First, read in m,n
 
-    space_split_first_line = (File.readline()).split(" ");
+    matrix_dimensions = (File.readline()).split(" ");
 
     # Depending on how many spaces were used between n and m,
-    # space_split_first_line could have any number of empty elements. Let's get
+    # matrix_dimensions could have any number of empty elements. Let's get
     # rid of those
-    space_split_first_line = remove_empty_elements(space_split_first_line);
+    matrix_dimensions = remove_empty_string(matrix_dimensions);
 
-    # At this point, space_split_first_line should contain just two elements
+    # At this point, matrix_dimensions should contain just two elements
     # corresponding to n and m. Thus, we can now assign m and n
-    m = int(space_split_first_line[0])
-    n = int(space_split_first_line[1])
+    m = int(matrix_dimensions[0])
+    n = int(matrix_dimensions[1])
 
 
     ############################################################################
@@ -89,20 +89,20 @@ def read_in_file():
 
     for i in range(m):
         # First, read in the line, splitting at spaces.
-        space_split_line = (File.readline()).split(" ");
+        character_row = (File.readline()).split(" ");
 
         # Depending on how the file was set up, a few things can happen.
         # For one, there will be a new line character in the list. Let's get
         # rid of that.
-        space_split_line = remove_newline_characters(space_split_line);
+        character_row = remove_newline_characters(character_row);
 
         # Further, if there are multiple spaces between two characters then
         # the split method creates empty strings. Let's get rid of those.
-        space_split_line = remove_empty_elements(space_split_line);
+        character_row = remove_empty_string(character_row);
 
         # Now the space split line has been processed. We can now add it to the
         # character grid.
-        character_grid.append(space_split_line);
+        character_grid.append(character_row);
 
     ############################################################################
     # Next, read in k.
@@ -254,6 +254,9 @@ def search_descending_diags_for_word(character_grid, word):
     for k in range(1,n+m+1):
         """ First, we need to get the kth descending diagonal of character_grid
         but how exactly do we do that?
+
+        Note: descending diagonals start in the upper left side of the grid.
+
         Well, suppose that k < m (the number of rows). Notice that the 2nd
         descending diagional looks like
                              | - - - - - |
@@ -270,11 +273,11 @@ def search_descending_diags_for_word(character_grid, word):
                              | - - - # - |
                              | - - - - # |
                              | - - - - - |
-        this diagional starts at position (0, 2), which is exactly (k-m, 0).
+        this diagional starts at position (0, 2), which is exactly (0, k-m).
         This result is also general. If k >= m then the kth descending diagional
-        starts at index (k-m, 0).
+        starts at index (0,k-m).
 
-        Using these insigits, we can get the kth descending diagional. """
+        Using these insights, we can get the kth descending diagional. """
 
         kth_diagional = [];
 
@@ -320,6 +323,9 @@ def search_ascending_diags_for_word(character_grid, word):
     for k in range(1,n+m+1):
         """ First, we need to get the kth ascending diagonal of character_grid.
         But how exactly do we do that?
+
+        Note: ascending diagonals start in the bottom left side of the grid.
+
         suppose that k < m (the number of rows). Notice that the 2nd
         ascending diagional looks like
                              | - # - - - |
@@ -338,7 +344,7 @@ def search_ascending_diags_for_word(character_grid, word):
                              | - - # - - |
         this diagional starts at position (m-1, 2), which is exactly (m-1, k-m).
         This result is also general. If k >= m then the kth ascending diagional
-        starts at index (m, k-m).
+        starts at index (m-1, k-m).
 
         Using these insigits, we can get the kth ascending diagional. """
 
@@ -403,7 +409,7 @@ def write_locations_to_file(locations_dict):
         if ((j+1) > max_coordinate):
             max_coordinate = j+1;
 
-    # Next, we need to determine the number of characters needed digits needed
+    # Next, we need to determine the number of characters needed
     # to represent max_coordinate. This is simply one more than the floor of the
     # log (base 10) of max_coordinate (think about it)
     coordinate_width = floor(log(max_coordinate,10)) + 1;
@@ -411,9 +417,9 @@ def write_locations_to_file(locations_dict):
 
     ############################################################################
     # Now, cycle through the keys in the dictionary, print the corresponding
-    # values to the File. It should be noted that, at this point, the i,j
+    # values to the File. It should be noted that, at this point, the i,j values correspond to the
     # index in the coordinate_grid. This means that they are 0 indexed. Thus,
-    # when priting to file, we need to add 1 to each of these values
+    # when printing to file, we need to add 1 to each of these values
     for word in locations_dict:
         i_str = str(locations_dict[word][0] + 1);     # the +1 converts from 0 index to 1 index
         j_str = str(locations_dict[word][1] + 1);
@@ -426,7 +432,7 @@ def write_locations_to_file(locations_dict):
 
 
 ################################################################################
-# Main! (the main function)
+# Main!
 
 def main():
     ############################################################################
@@ -473,7 +479,6 @@ def main():
         # if the code makes it to here, then we couldn't find the word.
         # write (-1,-1) for the location.
         locations_dict[word] = (-1,-1);
-
 
     ############################################################################
     # Finally, with the words found, write the results to found.txt
